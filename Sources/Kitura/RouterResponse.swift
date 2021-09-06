@@ -106,6 +106,8 @@ public class RouterResponse {
     var state = State()
 
     private var lifecycle = Lifecycle()
+    
+    private var responseHandler = Lifecycle()
 
     private let encoders: [MediaType: () -> BodyEncoder]
 
@@ -250,7 +252,7 @@ public class RouterResponse {
         }
         lifecycle.onEndInvoked()
         lifecycle.resetOnEndInvoked()
-
+        
         // Sets status code if unset
         if statusCode == .unknown {
             statusCode = .OK
@@ -273,6 +275,8 @@ public class RouterResponse {
         }
         state.invokedEnd = true
         try response.end()
+        responseHandler.onEndInvoked()
+        responseHandler.resetOnEndInvoked()
     }
 
     /// Add Set-Cookie headers
@@ -457,6 +461,12 @@ public class RouterResponse {
         lifecycle.onEndInvoked = newOnEndInvoked
         return oldOnEndInvoked
     }
+    
+    public func setOnResponseEndInvoked(_ newOnEndInvoked: @escaping LifecycleHandler) -> LifecycleHandler {
+            let oldOnEndInvoked = responseHandler.onEndInvoked
+        responseHandler.onEndInvoked = newOnEndInvoked
+            return oldOnEndInvoked
+        }
 
     /// Set the written data filter and return the previous one.
     ///
